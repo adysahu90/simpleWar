@@ -1,0 +1,98 @@
+    <!-- =================================================================== -->
+    <!-- set global properties for this build -->
+    <!-- =================================================================== -->
+
+<project name="simpleWar.project" default="war-package" basedir=".">
+    <property name="app.name"       value="simpleWar" />
+    <property name="build.dir"      value="build/classes" />
+    <property name="lib.dir"        value="build/lib"/>
+    <property name="build.home"     value="build/${app.name}"/>
+    <property name="src.dir"        value="src" />
+    <property name="dist.dir"       value="dist" />
+    
+
+
+    <!-- =================================================================== -->
+    <!-- Compile package                                                     -->
+    <!-- =================================================================== -->
+    <target name="compile">
+        <mkdir dir="${build.dir}"/>
+        <copy todir="${build.dir}">
+            <fileset dir="${src.dir}"
+                includes="**/*.properties"
+                excludes="**/*.java" 
+            />
+        </copy>
+
+    <!-- compile the java code from ${src.dir}/servlets into ${build.dir} -->
+        <javac srcdir="${src.dir}/servlets" destdir="${build.dir}" includeantruntime="false" fork="true">
+            <classpath>
+            
+                <pathelement path="${classpath}" />
+                <pathelement location="lib/servlet-api.jar" />
+             
+            </classpath>
+            <include name="**/*.java"/>
+	    <compilerarg line="-J-Xms256m -J-Xmx1024m" />
+        </javac>
+    </target>
+
+
+    <!-- =================================================================== -->
+    <!-- Create directories and copy files for jspSample web app          -->
+    <!-- =================================================================== -->
+    <target name="prepare.dist" depends="compile">
+        <mkdir dir="${dist.dir}"/>
+        <mkdir   dir="${build.home}/WEB-INF"/>
+        <mkdir   dir="${build.home}/WEB-INF/lib"/>
+        <mkdir   dir="${build.home}/WEB-INF/classes"/>
+        <mkdir   dir="${build.home}/jsps"/>
+
+        <!-- copy jsp files  -->
+        <copy  todir="${build.home}/jsps">
+            <fileset dir="src/jsps"
+                includes="**/*.jsp"
+                excludes="**/*.jar;*.java" 
+            />
+        </copy>
+
+	<!-- copy app specific configuration files    -->
+        <copy  todir="${build.home}/WEB-INF">
+            <fileset dir="src/WEB-INF"
+                includes="**/*"
+                excludes="**/*.jar" 
+            />
+        </copy>
+
+        <!-- copy classes                      -->
+        <copy  todir="${build.home}/WEB-INF/classes">
+            <fileset dir="${build.dir}"
+                includes="**/*"
+                excludes="**/*.tld;**/*.dtd" 
+            />
+        </copy>
+
+      <!-- preparing deploy jdbc driver  files         
+       <copy file="lib/classes12.jar" todir="${build.home}/WEB-INF/lib"/>
+       <copy file="lib/nls_charset12.jar" todir="${build.home}/WEB-INF/lib"/>
+      -->
+    </target>
+
+    <!-- =================================================================== -->
+    <!-- Packages the distribution to a WAR                                  -->
+    <!-- =================================================================== -->
+    <target name="war-package" depends="prepare.dist">
+        <jar  jarfile="${dist.dir}/${app.name}.war"
+              basedir="${build.home}" includes="**"/>
+    </target>
+
+    <!-- =================================================================== -->
+    <!-- Clean Packages                                                      -->
+    <!-- =================================================================== -->
+    <target name="clean" >
+    <!-- Delete the ${build.dir} and ${dist.dir} directory trees -->
+    <delete dir="${build.dir}"/>
+    <delete dir="${dist.dir}"/>
+    </target>
+
+</project>
